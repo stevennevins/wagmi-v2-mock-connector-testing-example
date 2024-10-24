@@ -11,11 +11,10 @@ export const mockAccount = privateKeyToAccount(privateKey)
 
 const getWalletClient = () =>
   createWalletClient({
-    transport: http(anvil.rpcUrls.default.http[0]),
+    transport: http(),
     chain: anvil,
     account: mockAccount,
-    key: privateKey,
-    pollingInterval: 100,
+    key: privateKey
   })
 
 const config = createConfig({
