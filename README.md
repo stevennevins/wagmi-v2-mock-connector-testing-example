@@ -6,13 +6,10 @@ install dependencies
 npm install
 ```
 
-start an instance of anvil
-
-```bash
-anvil
-```
-
 then run the tests
 ```
 npm run test
 ```
+
+
+TODO: Incorporate https://github.com/wevm/anvil.js/tree/main/examples/example-vitest

@@ -5,6 +5,7 @@ import { http, WagmiProvider, createConfig } from "wagmi";
 import { anvil } from "wagmi/chains";
 import { mock } from "wagmi/connectors";
 import { createWalletClient } from "viem";
+import { JSX } from "react";
 
 const privateKey =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // default anvil account 0
