@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { privateKeyToAccount } from "viem/accounts";
 import { http, WagmiProvider, createConfig } from "wagmi";
-import { anvil } from "wagmi/chains";
+import { anvil } from "./utils";
 import { mock } from "wagmi/connectors";
 import { createWalletClient } from "viem";
 import { JSX } from "react";
