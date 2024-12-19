@@ -6,7 +6,7 @@ import SendEth from "./SendEth";
 
 /// Just showing they have distinct forked instances of anvil
 describe("SendEth2", () => {
-  it("should render the SendEth component", async () => {
+  it("should render the SendEth component 2", async () => {
     await act(async () => {
       renderWithProviders(
         <>
@@ -20,7 +20,7 @@ describe("SendEth2", () => {
     expect(screen.getByText("Amount (ETH):")).toBeDefined();
   });
 
-  it("should handle sending ETH", async () => {
+  it("should handle sending ETH 2", async () => {
     await act(async () => {
       renderWithProviders(
         <>

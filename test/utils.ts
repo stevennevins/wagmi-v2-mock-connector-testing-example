@@ -6,7 +6,7 @@ import {
     http,
 } from "viem";
 import { foundry } from "viem/chains";
-import { PROXY_PORT, PROXY_URL } from "./constants";
+import { PROXY_URL } from "./constants";
 
 /**
  * The id of the current test worker.

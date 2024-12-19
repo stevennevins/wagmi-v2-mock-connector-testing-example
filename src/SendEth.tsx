@@ -28,11 +28,11 @@ export default function SendEth() {
 
   useEffect(() => {
     if (isSuccess) {
-      console.log("Transaction successful");
+      //   console.log("Transaction successful");
     } else if (error) {
       console.error(`Transaction failed: ${error.message}`);
     } else if (isLoading) {
-      console.log("isloading ");
+      //   console.log("isloading ");
     }
   }, [isSuccess, isLoading, error]);
 
