@@ -7,11 +7,11 @@ import { BASE_URL } from "./constants";
 afterEach(async () => {
     try {
         // Reset the forked chain state
-        console.log('Test client RPC URL:', testClient.transport.url);
+        // console.log('Test client RPC URL:', testClient.transport.url);
         await testClient.reset({
-            // jsonRpcUrl: BASE_URL,
+            jsonRpcUrl: BASE_URL,
         });
-        console.log('Successfully reset anvil state');
+        // console.log('Successfully reset anvil state');
     } catch (error) {
         console.error('Failed to reset state:', error);
     }

@@ -13,7 +13,7 @@ import { PROXY_PORT, PROXY_URL } from "./constants";
  * This is used by the anvil proxy to route requests to the correct anvil instance.
  */
 export const pool = Number(process.env.VITEST_POOL_ID ?? 1);
-console.log(`Test worker ${pool} connecting to anvil at ${PROXY_URL}/${pool}`);
+// console.log(`Test worker ${pool} connecting to anvil at ${PROXY_URL}/${pool}`);
 
 // Mock account for testing
 export const mockAccount = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";

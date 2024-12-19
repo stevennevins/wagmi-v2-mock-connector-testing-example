@@ -13,7 +13,7 @@ export default async function () {
         await baseAnvil.start();
 
         // Start proxy that forks from base instance
-        return await startProxy({
+        const shutdownProxies = await startProxy({
             port: PROXY_PORT,
             host: "::",
             options: {
@@ -21,6 +21,15 @@ export default async function () {
                 chainId: 123,
             },
         });
+
+        // Return a teardown function
+        return async () => {
+            // console.log('Stopping Anvil instances...');
+            shutdownProxies();
+            await baseAnvil.stop();
+            // console.log('Anvil instances stopped.');
+        };
+
     } catch (error) {
         console.error('Failed to start Anvil instances:', error);
         throw error;
