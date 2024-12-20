@@ -5,34 +5,33 @@ interface MintNFTProps {
 }
 
 export default function MintNFT({ contractAddress }: MintNFTProps) {
-  const { mint, success, error, txHash, isLoading, isConfirming, isConfirmed } =
-    useMintNFT(contractAddress);
+  const { mint, success, error, isConfirming } = useMintNFT(contractAddress);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const tokenId = formData.get("tokenId") as string;
-    await mint(tokenId);
+    await mint(tokenId || undefined);
   }
 
   return (
-    <div>
+    <div className="mint-nft-container">
       <form onSubmit={submit}>
-        <div>
+        <div className="input-container">
           <input
             name="tokenId"
             type="number"
             placeholder="Token ID (optional)"
+            disabled={isConfirming}
           />
         </div>
-        <button disabled={isLoading} type="submit">
-          {isLoading ? "Minting..." : "Mint NFT"}
+        <button className="mint-button" disabled={isConfirming} type="submit">
+          {isConfirming ? "Minting..." : "Mint NFT"}
         </button>
-        {txHash && <div>Transaction Hash: {txHash}</div>}
-        {isConfirming && <div>Waiting for confirmation...</div>}
-        {isConfirmed && <div>Transaction confirmed.</div>}
-        {error && <div>Error: {error.message}</div>}
-        {success && <div data-testid="success">Successfully minted NFT!</div>}
+
+        {isConfirming && <div data-testid="confirming" />}
+        {error && <div data-testid="error" />}
+        {success && <div data-testid="success" />}
       </form>
     </div>
   );

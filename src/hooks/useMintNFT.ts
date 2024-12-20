@@ -1,45 +1,26 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
     useWaitForTransactionReceipt,
     useWriteContract,
-    usePublicClient,
+    usePublicClient
 } from "wagmi";
 import { Contract } from "../utils/Contract";
 
-export function useMintNFT(contractAddress: `0x${string}`) {
-    const [success, setSuccess] = useState(false);
-    const [txHash, setTxHash] = useState<`0x${string}`>();
-    const [error, setError] = useState<Error | null>(null);
+type MintNFTHook = {
+    mint: (tokenId?: string) => Promise<void>;
+    txHash: `0x${string}` | undefined;
+    error: Error | null;
+    isConfirming: boolean;
+    success: boolean;
+};
 
+export function useMintNFT(contractAddress: `0x${string}`): MintNFTHook {
     const {
-        data: hash,
+        data: txHash,
         error: writeError,
         isPending,
         writeContract,
     } = useWriteContract();
-
-    const publicClient = usePublicClient();
-
-    useEffect(() => {
-        if (isPending) {
-            setError(null);
-        }
-    }, [isPending]);
-
-    useEffect(() => {
-        if (hash) {
-            console.log("Transaction submitted, hash:", hash);
-            setTxHash(hash);
-            setError(null);
-        }
-    }, [hash]);
-
-    useEffect(() => {
-        if (writeError) {
-            console.error("Write contract error:", writeError);
-            setError(writeError);
-        }
-    }, [writeError]);
 
     const {
         isLoading: isConfirming,
@@ -49,15 +30,11 @@ export function useMintNFT(contractAddress: `0x${string}`) {
         hash: txHash,
     });
 
-    useEffect(() => {
-        if (waitError) {
-            console.error("Wait for receipt error:", waitError);
-            setError(waitError);
-        }
-    }, [waitError]);
+    const publicClient = usePublicClient();
 
+    // Watch for Transfer events to determine success
     useEffect(() => {
-        if (!contractAddress || !publicClient) return;
+        if (!contractAddress || !publicClient || !txHash) return;
 
         const unwatch = publicClient.watchContractEvent({
             address: contractAddress,
@@ -66,24 +43,19 @@ export function useMintNFT(contractAddress: `0x${string}`) {
             onLogs(logs) {
                 if (logs && logs.length > 0) {
                     const [log] = logs;
-                    console.log("Processing Transfer event log:", {
+                    console.log("Transfer event:", {
                         blockNumber: log.blockNumber,
                         transactionHash: log.transactionHash,
                         args: log.args,
                     });
-                    setSuccess(true);
                 }
             },
         });
 
         return () => unwatch?.();
-    }, [contractAddress, publicClient]);
+    }, [contractAddress, publicClient, txHash]);
 
     const mint = async (tokenId?: string) => {
-        setSuccess(false);
-        setError(null);
-        setTxHash(undefined);
-
         try {
             writeContract({
                 address: contractAddress,
@@ -92,18 +64,15 @@ export function useMintNFT(contractAddress: `0x${string}`) {
                 args: tokenId ? [BigInt(tokenId)] : [],
             });
         } catch (err) {
-            console.error("Error submitting transaction:", err);
-            setError(err instanceof Error ? err : new Error("Unknown error occurred"));
+            console.error("Mint error:", err);
         }
     };
 
     return {
         mint,
-        success,
-        error,
         txHash,
-        isLoading: isPending || isConfirming,
-        isConfirming,
-        isConfirmed,
+        error: writeError || waitError,
+        isConfirming: isPending || isConfirming,
+        success: isConfirmed,
     };
 }
