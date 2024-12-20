@@ -28,6 +28,9 @@ const config = createConfig({
 const queryClient = new QueryClient();
 
 export const renderWithProviders = (component: JSX.Element) => {
+  // Log RPC URL from wallet client
+  console.log("Provider RPC URL:", getWalletClient().transport.url);
+
   return render(
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
