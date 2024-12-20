@@ -1,11 +1,11 @@
-import { renderWithProviders } from "../test";
+import { renderWithProviders } from "../../../test";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest";
-import Connect from "./Connect";
-import MintNFT from "./MintNFT";
-import { Contract } from "./utils/Contract";
-import { publicClient, walletClient, testClient } from "../test/utils";
-import { mockAccount } from "../test/index";
+import Connect from "../Connect";
+import MintNFT from "../MintNFT";
+import { Contract } from "../../utils/Contract";
+import { publicClient, walletClient, testClient } from "../../../test/utils";
+import { mockAccount } from "../../../test";
 
 describe("MintNFT", () => {
   let contractAddress: `0x${string}`;

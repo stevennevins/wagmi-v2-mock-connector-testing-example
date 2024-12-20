@@ -3,8 +3,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { WagmiProvider } from "wagmi";
 
-import App from "./App.tsx";
-import { config } from "./wagmi.ts";
+import App from "./App";
+import { config } from "./wagmi";
 
 const queryClient = new QueryClient();
 

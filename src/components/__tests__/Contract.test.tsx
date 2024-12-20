@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { Contract } from "./utils/Contract";
-import { publicClient, walletClient } from "../test/utils";
-import { mockAccount } from "../test/index";
+import { Contract } from "../../utils/Contract";
+import { publicClient, walletClient } from "../../../test/utils";
+import { mockAccount } from "../../../test/index";
 
 test("deploys contract and mints NFT", async () => {
   const hash = await walletClient.deployContract({

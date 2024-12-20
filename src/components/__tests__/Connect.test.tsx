@@ -1,7 +1,7 @@
-import { renderWithProviders } from "../test";
+import { renderWithProviders } from "../../../test";
 import { act, screen, fireEvent } from "@testing-library/react";
 import { describe, it } from "vitest";
-import Connect from "./Connect";
+import Connect from "../Connect";
 
 describe("Connect", () => {
   it("should render the Connect component", async () => {
