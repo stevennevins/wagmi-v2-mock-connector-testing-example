@@ -43,11 +43,14 @@ export function useMintNFT(contractAddress: `0x${string}`): MintNFTHook {
             onLogs(logs) {
                 if (logs && logs.length > 0) {
                     const [log] = logs;
-                    console.log("Transfer event:", {
-                        blockNumber: log.blockNumber,
-                        transactionHash: log.transactionHash,
-                        args: log.args,
-                    });
+                    // Only process events from our transaction
+                    if (log.transactionHash === txHash) {
+                        console.log("Transfer event:", {
+                            blockNumber: log.blockNumber,
+                            transactionHash: log.transactionHash,
+                            args: log.args,
+                        });
+                    }
                 }
             },
         });
