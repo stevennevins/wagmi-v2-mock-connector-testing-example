@@ -57,58 +57,57 @@ describe("MintNFT", () => {
     });
 
     const mintButton = screen.getByText("Mint NFT");
-
     await act(async () => {
       fireEvent.click(mintButton);
     });
 
-    await testClient.mine({ blocks: 1 });
     // Check initial state
-    // expect(screen.queryByText("Minting...")).toBeNull();
-    // expect(screen.queryByText("Transaction Hash:")).toBeNull();
-    // expect(screen.queryByText("Waiting for confirmation...")).toBeNull();
-    // expect(screen.queryByText("Transaction confirmed.")).toBeNull();
-    // expect(screen.queryByTestId("success")).toBeNull();
+    expect(screen.queryByText("Minting...")).toBeNull();
+    expect(screen.queryByText("Transaction Hash:")).toBeNull();
+    expect(screen.queryByText("Waiting for confirmation...")).toBeNull();
+    expect(screen.queryByText("Transaction confirmed.")).toBeNull();
+    expect(screen.queryByTestId("success")).toBeNull();
 
     // Wait for and verify loading state
     await waitFor(() => {
       expect(screen.getByText("Minting...")).toBeDefined();
     });
 
+    // Mine blocks to process transaction
+    await testClient.mine({ blocks: 2 });
+
+    // Wait for and verify transaction hash
+    await waitFor(() => {
+      expect(screen.getByText(/Transaction Hash:/)).toBeDefined();
+    });
+
+    // Wait for and verify confirmation state
+    await waitFor(() => {
+      expect(screen.getByText("Waiting for confirmation...")).toBeDefined();
+    });
+
+    // Mine blocks to confirm transaction
+    await testClient.mine({ blocks: 2 });
+
+    // Wait for and verify confirmed state
+    await waitFor(() => {
+      expect(screen.getByText("Transaction confirmed.")).toBeDefined();
+    });
+
+    // Wait for Transfer event and success state
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("success")).toBeDefined();
+      },
+      {
+        timeout: 5000,
+      }
+    );
+
+    // Mine additional block to ensure state is updated
     await testClient.mine({ blocks: 1 });
-    // await testClient.mine({ blocks: 1 });
-    // // // Wait for and verify transaction hash
-    // // await waitFor(() => {
-    // //   expect(screen.getByText(/Transaction Hash:/)).toBeDefined();
-    // // });
 
-    // // Wait for and verify confirmation state
-    // await waitFor(() => {
-    //   expect(screen.getByText("Waiting for confirmation...")).toBeDefined();
-    // });
-
-    // // Mine a block to confirm the transaction
-    // await testClient.mine({ blocks: 1 });
-
-    // // Wait for and verify confirmed state
-    // await waitFor(() => {
-    //   expect(screen.getByText("Transaction confirmed.")).toBeDefined();
-    // });
-
-    // // Mine another block to trigger Transfer event
-    // await testClient.mine({ blocks: 1 });
-
-    // // Wait for and verify success state
-    // await waitFor(
-    //   () => {
-    //     expect(screen.getByTestId("success")).toBeDefined();
-    //   },
-    //   {
-    //     timeout: 5000,
-    //   }
-    // );
-
-    // Check if NFT was minted
+    // Check if NFT was minted after confirmation and event
     const balanceAfter = await publicClient.readContract({
       address: contractAddress,
       abi: Contract.abi,
