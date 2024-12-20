@@ -21,7 +21,10 @@ const getWalletClient = () =>
 
 const config = createConfig({
   chains: [anvil],
-  client: getWalletClient,
+  pollingInterval: 100,
+  transports: {
+    [anvil.id]: http(),
+  },
   connectors: [mock({ accounts: [mockAccount.address] })],
 });
 

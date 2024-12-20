@@ -131,17 +131,10 @@ describe("MintNFT", () => {
     console.log("Final balance:", balanceAfter.toString());
     expect(balanceAfter).toBe(balanceBefore + 1n);
 
-    // Optional: wait for success message with a shorter timeout
-    try {
-      await waitFor(() => {
-        const successElement = screen.getByTestId("success");
-        console.log("Mint successful");
-        expect(successElement).toBeDefined();
-      });
-    } catch (error) {
-      console.log(
-        "Note: Success message not shown due to event watching limitations in test environment"
-      );
-    }
+    await waitFor(() => {
+      const successElement = screen.getByTestId("success");
+      console.log("Mint successful");
+      expect(successElement).toBeDefined();
+    });
   });
 });

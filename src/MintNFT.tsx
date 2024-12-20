@@ -5,6 +5,7 @@ import {
   useWriteContract,
   useWatchContractEvent,
 } from "wagmi";
+import { keccak256, toHex, stringToHex } from "viem";
 import { Contract } from "./utils/Contract";
 
 interface MintNFTProps {
@@ -38,6 +39,7 @@ export default function MintNFT({ contractAddress }: MintNFTProps) {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
     isError: isConfirmError,
+    data: receipt,
   } = useWaitForTransactionReceipt({
     hash,
   });
@@ -49,7 +51,31 @@ export default function MintNFT({ contractAddress }: MintNFTProps) {
       isConfirmed,
       isConfirmError,
     });
-  }, [isConfirming, isConfirmed, isConfirmError]);
+
+    // Check receipt for Transfer event when confirmed
+    if (isConfirmed && receipt) {
+      const transferEvents = receipt.logs.filter((log) => {
+        try {
+          const transferEvent = Contract.abi.find(
+            (x) => x.type === "event" && x.name === "Transfer"
+          );
+          const eventSignature = `${transferEvent?.name}(address,address,uint256)`;
+          const eventTopic = keccak256(stringToHex(eventSignature));
+          return (
+            log.address.toLowerCase() === contractAddress.toLowerCase() &&
+            log.topics[0] === eventTopic
+          );
+        } catch {
+          return false;
+        }
+      });
+
+      if (transferEvents.length > 0) {
+        console.log("Transfer event found in receipt:", transferEvents);
+        setSuccess(true);
+      }
+    }
+  }, [isConfirming, isConfirmed, isConfirmError, receipt, contractAddress]);
 
   useWatchContractEvent({
     address: contractAddress,
