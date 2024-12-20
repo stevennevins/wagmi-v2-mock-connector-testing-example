@@ -5,8 +5,8 @@ import {
     createWalletClient,
     http,
 } from "viem";
-import { foundry } from "viem/chains";
-import { PROXY_PORT, PROXY_URL } from "./constants";
+import { anvil as anvilViem } from "viem/chains";
+import { PROXY_URL } from "./constants";
 
 /**
  * The id of the current test worker.
@@ -20,7 +20,7 @@ export const mockAccount = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
 // Local chain configuration using foundry base for compatibility
 export const anvil = {
-    ...foundry,
+    ...anvilViem,
     id: 123,
     rpcUrls: {
         default: {

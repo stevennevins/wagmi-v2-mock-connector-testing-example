@@ -19,6 +19,7 @@ export default async function () {
             options: {
                 forkUrl: BASE_URL,
                 chainId: 123,
+                noMining: false
             },
         });
 

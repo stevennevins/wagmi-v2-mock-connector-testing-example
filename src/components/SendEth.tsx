@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import { parseEther, isAddress } from "viem";
 
@@ -25,16 +25,6 @@ export default function SendEth() {
       setTo(inputAddress);
     }
   };
-
-  useEffect(() => {
-    if (isSuccess) {
-      console.log("Transaction successful");
-    } else if (error) {
-      console.error(`Transaction failed: ${error.message}`);
-    } else if (isLoading) {
-      console.log("isloading ");
-    }
-  }, [isSuccess, isLoading, error]);
 
   return (
     <div>

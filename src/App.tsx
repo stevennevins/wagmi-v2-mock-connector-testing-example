@@ -1,6 +1,10 @@
 import { useAccount, useDisconnect } from "wagmi";
-import Connect from "./Connect";
-import SendEth from "./SendEth";
+import Connect from "./components/Connect";
+import SendEth from "./components/SendEth";
+import MintNFT from "./components/MintNFT";
+
+// This is just for demo purposes. In a real app, you'd want to get this from environment variables or deployment
+const CONTRACT_ADDRESS = "0xfba3912ca04dd458c843e2ee08967fc04f3579c2" as const;
 
 function App() {
   const account = useAccount();
@@ -29,10 +33,15 @@ function App() {
       <Connect />
 
       {account.status === "connected" && (
-        <div>
-          <h2>Send ETH</h2>
-          <SendEth />
-        </div>
+        <>
+          <div>
+            <h2>Send ETH</h2>
+            <SendEth />
+          </div>
+          <div>
+            <MintNFT contractAddress={CONTRACT_ADDRESS} />
+          </div>
+        </>
       )}
     </>
   );

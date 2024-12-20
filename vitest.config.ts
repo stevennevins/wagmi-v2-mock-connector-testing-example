@@ -7,5 +7,11 @@ export default defineConfig({
         setupFiles: ['./test/setup.ts'],
         globalSetup: ['./test/globalSetup.ts'],
         globals: true,
+        reporters: ['verbose'],
+        testTimeout: 5000,
+        pool: 'threads',
+        sequence: {
+            shuffle: true,
+        },
     },
 })
