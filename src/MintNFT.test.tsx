@@ -171,6 +171,13 @@ describe("MintNFT", () => {
     retryCount = 0;
     while (retryCount < maxRetries) {
       try {
+        // Mine multiple blocks to ensure events are processed
+        console.log("Mining blocks for Transfer event processing...");
+        for (let i = 0; i < 3; i++) {
+          await testClient.mine({ blocks: 1 });
+          await new Promise(resolve => setTimeout(resolve, 500)); // Wait for event processing
+        }
+
         await waitFor(() => {
           const successElement = screen.getByTestId("success");
           console.log("Found success state:", successElement.textContent);
@@ -179,7 +186,10 @@ describe("MintNFT", () => {
         break;
       } catch (error) {
         console.log(`Success state retry ${retryCount + 1}/${maxRetries}`);
-        await testClient.mine({ blocks: 1 });
+        if (retryCount === maxRetries - 1) {
+          console.log("Final retry attempt, dumping component state...");
+          console.log("Current DOM:", screen.debug());
+        }
         retryCount++;
         if (retryCount === maxRetries) throw error;
         await new Promise(resolve => setTimeout(resolve, 1000));

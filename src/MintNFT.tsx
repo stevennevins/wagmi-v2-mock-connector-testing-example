@@ -64,9 +64,20 @@ export default function MintNFT({ contractAddress }: MintNFTProps) {
     abi: Contract.abi,
     eventName: "Transfer",
     onLogs: (logs) => {
-      console.log("Transfer event received:", logs);
-      setSuccess(true);
+      console.log("Transfer event received with logs:", logs);
+      if (logs && logs.length > 0) {
+        const [log] = logs;
+        console.log("Processing Transfer event log:", {
+          from: log.args?.from,
+          to: log.args?.to,
+          tokenId: log.args?.tokenId?.toString()
+        });
+        setSuccess(true);
+      }
     },
+    strict: true,
+    pollingInterval: 1000, // Poll every second
+    batch: false // Process events one at a time
   });
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
