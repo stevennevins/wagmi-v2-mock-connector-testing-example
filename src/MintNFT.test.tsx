@@ -1,29 +1,31 @@
-import { renderWithProviders } from "../test";
-import { act, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, beforeEach } from "vitest";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, beforeEach } from "vitest";
+import { type Address } from "viem";
 import Connect from "./Connect";
 import MintNFT from "./MintNFT";
 import { Contract } from "./utils/Contract";
-import { publicClient, walletClient, testClient } from "../test/utils";
-import { mockAccount } from "../test/index";
+import { mockAccount, publicClient, testClient, walletClient, renderWithProviders } from "../test/utils";
 
 describe("MintNFT", () => {
-  let contractAddress: `0x${string}`;
+  let contractAddress: Address;
 
   beforeEach(async () => {
-    // Deploy the contract once before all tests
+    // Deploy a new contract for each test
+    console.log("Deploying new contract...");
+
+    // Deploy contract using pre-configured wallet client
     const hash = await walletClient.deployContract({
       abi: Contract.abi,
       bytecode: Contract.bytecode,
     });
 
+    console.log("Waiting for contract deployment receipt...");
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
-    contractAddress = receipt.contractAddress!;
+    contractAddress = receipt.contractAddress as Address;
+    console.log("Contract deployed at:", contractAddress);
 
-    console.log("Wallet client RPC URL:", walletClient.transport.url);
-    console.log("public client RPC URL:", publicClient.transport.url);
-    console.log("test client RPC URL:", testClient.transport.url);
-    console.log("Contract deployed to:", contractAddress);
+    // Mine a block after deployment
+    await testClient.mine({ blocks: 1 });
   });
 
   it("should render the MintNFT component", async () => {
@@ -174,8 +176,20 @@ describe("MintNFT", () => {
         // Mine multiple blocks to ensure events are processed
         console.log("Mining blocks for Transfer event processing...");
         for (let i = 0; i < 3; i++) {
+          console.log(`Mining block ${i + 1}/3...`);
           await testClient.mine({ blocks: 1 });
-          await new Promise(resolve => setTimeout(resolve, 500)); // Wait for event processing
+
+          // Check for events after each block
+          const events = await publicClient.getContractEvents({
+            address: contractAddress,
+            abi: Contract.abi,
+            eventName: 'Transfer',
+            fromBlock: 'latest',
+            toBlock: 'latest'
+          });
+          console.log(`Block mined, found ${events.length} Transfer events:`, events);
+
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         await waitFor(() => {
@@ -205,7 +219,7 @@ describe("MintNFT", () => {
       address: contractAddress,
       abi: Contract.abi,
       functionName: "balanceOf",
-      args: [mockAccount.address],
+      args: [mockAccount],
     });
 
     console.log("Final balance:", balanceAfter.toString());

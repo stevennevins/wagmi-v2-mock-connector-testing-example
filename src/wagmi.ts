@@ -1,6 +1,6 @@
 import { http, createConfig } from 'wagmi'
-import { anvil } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
+import { anvil } from './config/chain'
 
 export const config = createConfig({
     chains: [anvil],
@@ -8,6 +8,6 @@ export const config = createConfig({
         injected()
     ],
     transports: {
-        [anvil.id]: http(),
+        [anvil.id]: http(`${anvil.rpcUrls.default.http[0]}`),
     },
 })

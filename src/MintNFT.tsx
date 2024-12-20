@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import {
-  type BaseError,
   useWaitForTransactionReceipt,
   useWriteContract,
-  useWatchContractEvent,
+  usePublicClient,
 } from "wagmi";
 import { Contract } from "./utils/Contract";
 
@@ -22,6 +21,8 @@ export default function MintNFT({ contractAddress }: MintNFTProps) {
     isPending,
     writeContract
   } = useWriteContract();
+
+  const publicClient = usePublicClient();
 
   useEffect(() => {
     if (isPending) {
@@ -59,26 +60,35 @@ export default function MintNFT({ contractAddress }: MintNFTProps) {
     }
   }, [waitError]);
 
-  useWatchContractEvent({
-    address: contractAddress,
-    abi: Contract.abi,
-    eventName: "Transfer",
-    onLogs: (logs) => {
-      console.log("Transfer event received with logs:", logs);
-      if (logs && logs.length > 0) {
-        const [log] = logs;
-        console.log("Processing Transfer event log:", {
-          from: log.args?.from,
-          to: log.args?.to,
-          tokenId: log.args?.tokenId?.toString()
-        });
-        setSuccess(true);
+  // Watch for Transfer events
+  useEffect(() => {
+    if (!contractAddress || !publicClient) return;
+
+    console.log("Setting up Transfer event watch for contract:", contractAddress);
+    const unwatch = publicClient.watchContractEvent({
+      address: contractAddress,
+      abi: Contract.abi,
+      eventName: 'Transfer',
+      onLogs(logs) {
+        console.log("Transfer event received with logs:", logs);
+        if (logs && logs.length > 0) {
+          const [log] = logs;
+          console.log("Processing Transfer event log:", {
+            blockNumber: log.blockNumber,
+            transactionHash: log.transactionHash,
+            args: log.args,
+          });
+          setSuccess(true);
+        }
       }
-    },
-    strict: true,
-    pollingInterval: 1000, // Poll every second
-    batch: false // Process events one at a time
-  });
+    });
+
+    return () => {
+      console.log("Cleaning up Transfer event watch");
+      unwatch?.();
+    };
+  }, [contractAddress, publicClient]);
+
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -123,7 +133,7 @@ export default function MintNFT({ contractAddress }: MintNFTProps) {
         {isConfirming && <div>Waiting for confirmation...</div>}
         {isConfirmed && <div>Transaction confirmed.</div>}
         {error && (
-          <div>Error: {(error as BaseError).shortMessage || error.message}</div>
+          <div>Error: {error.message}</div>
         )}
         {success && <div data-testid="success">Successfully minted NFT!</div>}
       </form>

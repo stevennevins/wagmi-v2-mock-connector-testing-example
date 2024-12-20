@@ -1,12 +1,16 @@
-import { renderWithProviders } from "../test";
+import { renderWithProviders } from "../test/utils";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import Connect from "./Connect";
 import SendEth from "./SendEth";
 import { parseEther } from "viem";
 import { createPublicClient, http } from "viem";
-import { anvil } from "../test/utils";
-import { mockAccount } from "../test";
+import { anvil } from "./config/chain";
+import { mockAccount } from "../test/utils";
+import { PROXY_URL } from "../test/constants";
+
+// Get the pool ID for test worker
+const pool = Number(process.env.VITEST_POOL_ID ?? 1);
 
 describe("SendEth", () => {
   it("should render the SendEth component", async () => {
@@ -26,14 +30,14 @@ describe("SendEth", () => {
   it("should handle sending ETH", async () => {
     const publicClient = createPublicClient({
       chain: anvil,
-      transport: http(),
+      transport: http(`${PROXY_URL}/${pool}`),
     });
 
     const recipient = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
     const amount = parseEther("0.01"); // Default amount in SendEth.tsx
 
     const senderBalanceBefore = await publicClient.getBalance({
-      address: mockAccount.address,
+      address: mockAccount,
     });
     expect(senderBalanceBefore).toBe(parseEther("10000"));
 
