@@ -3,9 +3,8 @@ import {
   type BaseError,
   useWaitForTransactionReceipt,
   useWriteContract,
-  useWatchContractEvent,
+  usePublicClient,
 } from "wagmi";
-import { keccak256, toHex, stringToHex } from "viem";
 import { Contract } from "./utils/Contract";
 
 interface MintNFTProps {
@@ -14,98 +13,110 @@ interface MintNFTProps {
 
 export default function MintNFT({ contractAddress }: MintNFTProps) {
   const [success, setSuccess] = useState(false);
+  const [txHash, setTxHash] = useState<`0x${string}`>();
+  const [error, setError] = useState<Error | null>(null);
 
   const {
     data: hash,
-    error,
+    error: writeError,
     isPending,
     writeContract,
-    isSuccess: isWriteSuccess,
-    isError: isWriteError,
   } = useWriteContract();
 
-  // Log state changes for writeContract
+  const publicClient = usePublicClient();
+
   useEffect(() => {
-    console.log("WriteContract state changed:", {
-      hash,
-      isPending,
-      isWriteSuccess,
-      isWriteError,
-      error: error ? (error as BaseError).shortMessage || error.message : null,
-    });
-  }, [hash, isPending, isWriteSuccess, isWriteError, error]);
+    if (isPending) {
+      setError(null);
+    }
+  }, [isPending]);
+
+  useEffect(() => {
+    if (hash) {
+      console.log("Transaction submitted, hash:", hash);
+      setTxHash(hash);
+      setError(null);
+    }
+  }, [hash]);
+
+  useEffect(() => {
+    if (writeError) {
+      console.error("Write contract error:", writeError);
+      setError(writeError);
+    }
+  }, [writeError]);
 
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
-    isError: isConfirmError,
-    data: receipt,
+    error: waitError,
   } = useWaitForTransactionReceipt({
-    hash,
+    hash: txHash,
   });
 
-  // Log state changes for transaction receipt
   useEffect(() => {
-    console.log("Transaction receipt state:", {
-      isConfirming,
-      isConfirmed,
-      isConfirmError,
+    if (waitError) {
+      console.error("Wait for receipt error:", waitError);
+      setError(waitError);
+    }
+  }, [waitError]);
+
+  // Watch for Transfer events
+  useEffect(() => {
+    if (!contractAddress || !publicClient) return;
+
+    console.log(
+      "Setting up Transfer event watch for contract:",
+      contractAddress
+    );
+    const unwatch = publicClient.watchContractEvent({
+      address: contractAddress,
+      abi: Contract.abi,
+      eventName: "Transfer",
+      onLogs(logs) {
+        console.log("Transfer event received with logs:", logs);
+        if (logs && logs.length > 0) {
+          const [log] = logs;
+          console.log("Processing Transfer event log:", {
+            blockNumber: log.blockNumber,
+            transactionHash: log.transactionHash,
+            args: log.args,
+          });
+          setSuccess(true);
+        }
+      },
     });
 
-    // Check receipt for Transfer event when confirmed
-    if (isConfirmed && receipt) {
-      const transferEvents = receipt.logs.filter((log) => {
-        try {
-          const transferEvent = Contract.abi.find(
-            (x) => x.type === "event" && x.name === "Transfer"
-          );
-          const eventSignature = `${transferEvent?.name}(address,address,uint256)`;
-          const eventTopic = keccak256(stringToHex(eventSignature));
-          return (
-            log.address.toLowerCase() === contractAddress.toLowerCase() &&
-            log.topics[0] === eventTopic
-          );
-        } catch {
-          return false;
-        }
-      });
-
-      if (transferEvents.length > 0) {
-        console.log("Transfer event found in receipt:", transferEvents);
-        setSuccess(true);
-      }
-    }
-  }, [isConfirming, isConfirmed, isConfirmError, receipt, contractAddress]);
-
-  useWatchContractEvent({
-    address: contractAddress,
-    abi: Contract.abi,
-    eventName: "Transfer",
-    onLogs: (logs) => {
-      console.log("Transfer event received:", logs);
-      setSuccess(true);
-    },
-  });
+    return () => {
+      console.log("Cleaning up Transfer event watch");
+      unwatch?.();
+    };
+  }, [contractAddress, publicClient]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSuccess(false); // Reset success state on new submission
+    setSuccess(false);
+    setError(null);
+    setTxHash(undefined);
+
     const formData = new FormData(e.currentTarget);
     const tokenId = formData.get("tokenId") as string;
     console.log("Submitting mint with tokenId:", tokenId || "none");
     console.log("Contract address:", contractAddress);
 
     try {
-      console.log("Initiating contract write...");
+      console.log("Preparing mint transaction...");
       writeContract({
         address: contractAddress,
         abi: Contract.abi,
         functionName: "mint",
         args: tokenId ? [BigInt(tokenId)] : [],
       });
-      console.log("Contract write initiated");
     } catch (err) {
-      console.error("Error writing contract:", err);
+      console.error("Error submitting transaction:", err);
+      setError(
+        err instanceof Error ? err : new Error("Unknown error occurred")
+      );
     }
   }
 
@@ -124,12 +135,10 @@ export default function MintNFT({ contractAddress }: MintNFTProps) {
         <button disabled={isLoading} type="submit">
           {isLoading ? "Minting..." : "Mint NFT"}
         </button>
-        {hash && <div>Transaction Hash: {hash}</div>}
+        {txHash && <div>Transaction Hash: {txHash}</div>}
         {isConfirming && <div>Waiting for confirmation...</div>}
         {isConfirmed && <div>Transaction confirmed.</div>}
-        {error && (
-          <div>Error: {(error as BaseError).shortMessage || error.message}</div>
-        )}
+        {error && <div>Error: {error.message}</div>}
         {success && <div data-testid="success">Successfully minted NFT!</div>}
       </form>
     </div>
