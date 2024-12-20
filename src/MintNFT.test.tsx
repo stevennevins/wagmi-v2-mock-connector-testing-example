@@ -49,6 +49,14 @@ describe("MintNFT", () => {
       );
     });
 
+    // Check initial state before any actions
+    const mintButton = screen.getByText("Mint NFT");
+    expect(mintButton).toBeDefined();
+    expect(screen.queryByText("Transaction Hash:")).toBeNull();
+    expect(screen.queryByText("Waiting for confirmation...")).toBeNull();
+    expect(screen.queryByText("Transaction confirmed.")).toBeNull();
+    expect(screen.queryByTestId("success")).toBeNull();
+
     const connectButton = screen.getByRole("button", {
       name: "Mock Connector",
     });
@@ -56,17 +64,9 @@ describe("MintNFT", () => {
       fireEvent.click(connectButton);
     });
 
-    const mintButton = screen.getByText("Mint NFT");
     await act(async () => {
       fireEvent.click(mintButton);
     });
-
-    // Check initial state
-    expect(screen.queryByText("Minting...")).toBeNull();
-    expect(screen.queryByText("Transaction Hash:")).toBeNull();
-    expect(screen.queryByText("Waiting for confirmation...")).toBeNull();
-    expect(screen.queryByText("Transaction confirmed.")).toBeNull();
-    expect(screen.queryByTestId("success")).toBeNull();
 
     // Wait for and verify loading state
     await waitFor(() => {
